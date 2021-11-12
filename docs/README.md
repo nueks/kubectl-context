@@ -9,7 +9,7 @@ Copy this script to `$PATH`
 ![usage](./usage.gif)
 
 ### Tips
-Use multiple kubectl files
+Use multiple kubeconfig files
 
 ```sh
 $ export KUBECONFIG=<1st config file>:<2nd config file>
