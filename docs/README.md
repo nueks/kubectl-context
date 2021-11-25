@@ -19,6 +19,7 @@ $ export KUBECONFIG=<1st config file>:<2nd config file>
 ```sh
 $ tree .kube/cfg
 .kube/cfg
+├── 00-current
 ├── admin@aisuite-dev
 ├── admin@aisuite-prod
 ├── admin@csr1
@@ -26,6 +27,12 @@ $ tree .kube/cfg
 ├── ai-infra@citrus
 ├── nueks@aisuite-prod
 └── nueks@ncloud
+```
+
+```sh
+$ cat .kube/cfg/00-current
+apiVersion: v1
+kind: Config
 ```
 
 ```sh
