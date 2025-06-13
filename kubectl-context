@@ -6,13 +6,12 @@
 KUBECTL=$(which kubectl)
 
 # Get all kubernetes contexts and store them in an array
-# Use mapfile alternative for macOS compatibility
 menu=()
 while IFS= read -r line; do
     menu+=("$line")
 done < <($KUBECTL config get-contexts | tr '*' ' ' | awk 'NR>1 {gsub(/^[ ]+/, ""); print $0}')
 
-# Extract header from kubectl output and remove the CURRENT column
+# Extract header from kubectl output
 header=$($KUBECTL config get-contexts | head -n1 | sed 's/CURRENT[[:space:]][[:space:]]*/  /g')
 
 # Use gum to select a context from the menu
@@ -22,7 +21,6 @@ selected=$(gum choose --header="$header" "${menu[@]}")
 if [[ -n "$selected" ]]; then
     context_name=$(echo "$selected" | awk '{print $1}')
     $KUBECTL config use-context "$context_name"
-    # echo "Current context: $($KUBECTL config current-context)"
 else
     echo "Selection cancelled"
 fi
