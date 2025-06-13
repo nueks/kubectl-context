@@ -1,0 +1,60 @@
+#!/opt/homebrew/bin/bash
+
+# Kubernetes namespace selector using gum
+# Dependencies: kubectl, gum
+
+set -e
+
+KUBECTL=$(which kubectl)
+CURRENT_CONTEXT=$($KUBECTL config current-context)
+
+# Function to switch namespace
+switch_namespace() {
+    local ns="$1"
+
+    if [[ "$ns" == "default" ]]; then
+        # Remove namespace setting for default
+        $KUBECTL config set-context --current --namespace=""
+        echo "Removed namespace setting (using default namespace)"
+    else
+        $KUBECTL config set-context --current --namespace="$ns"
+        echo "Switched to namespace: $ns"
+    fi
+}
+
+# Function to list all namespaces
+list_namespaces() {
+    $KUBECTL get namespaces --context="$CURRENT_CONTEXT" | awk 'NR>1 {print $1}'
+}
+
+# Function to show interactive namespace selector
+select_namespace_interactive() {
+    local namespaces=$(list_namespaces)
+    local selected=$(echo "$namespaces" | gum filter --placeholder="Filter namespaces..." --header="NAMESPACES IN CONTEXT: $CURRENT_CONTEXT")
+
+    if [[ -n "$selected" ]]; then
+        switch_namespace "$selected"
+    else
+        echo "Selection cancelled"
+    fi
+}
+
+# Main logic
+main() {
+    # If namespace is provided as an argument, use it directly
+    if [[ -n "$1" ]]; then
+        # Check if the namespace exists
+        if $KUBECTL get namespace "$1" --context="$CURRENT_CONTEXT" &>/dev/null; then
+            switch_namespace "$1"
+        else
+            echo "Error: Namespace '$1' not found in context '$CURRENT_CONTEXT'"
+            exit 1
+        fi
+    else
+        # No argument provided, show interactive selector
+        select_namespace_interactive
+    fi
+}
+
+# Run the main function
+main "$@"

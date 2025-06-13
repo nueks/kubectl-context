@@ -1,0 +1,71 @@
+#!/opt/homebrew/bin/bash
+
+# Kubernetes context selector using gum
+# Dependencies: kubectl, gum
+
+set -e
+
+KUBECTL=$(which kubectl)
+# Global variables
+menu=()
+current_context=""
+
+# Function to get current context
+get_current_context() {
+    current_context=$($KUBECTL config current-context)
+}
+
+# Function to switch to a context
+switch_context() {
+    local context_name="$1"
+    $KUBECTL config use-context "$context_name"
+}
+
+# Function to create menu with current context highlighted
+create_menu() {
+    # Clear the menu array
+    menu=()
+
+    # Get all kubernetes contexts and format them with current context highlighted
+    while IFS= read -r line; do
+        context_name=$(echo "$line" | awk '{print $1}')
+        if [[ "$context_name" == "$current_context" ]]; then
+            # Add a visual indicator to the current context
+            menu+=("✓ $line")
+        else
+            menu+=("  $line")
+        fi
+    done < <($KUBECTL config get-contexts | tr '*' ' ' | awk 'NR>1 {gsub(/^[ ]+/, ""); print $0}')
+}
+
+# Function to show interactive context selector
+select_context_interactive() {
+    # Create menu items using the global menu array
+    create_menu
+
+    # Extract header from kubectl output
+    header=$($KUBECTL config get-contexts | head -n1 | sed 's/CURRENT[[:space:]][[:space:]]*/    /g')
+
+    # Use gum to select a context from the menu
+    selected=$(gum choose --header="$header" "${menu[@]}")
+
+    # If a selection was made (not cancelled), switch to that context
+    if [[ -n "$selected" ]]; then
+        # Remove the prefix indicator if present
+        selected=${selected#"✓ "}
+        selected=${selected#"  "}
+        context_name=$(echo "$selected" | awk '{print $1}')
+        switch_context "$context_name"
+    else
+        echo "Selection cancelled"
+    fi
+}
+
+# Main function
+main() {
+    get_current_context
+    select_context_interactive
+}
+
+# Run the main function
+main
