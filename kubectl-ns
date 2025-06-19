@@ -5,6 +5,13 @@
 
 set -e
 
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 \
+--color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF \
+--color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 \
+--color=selected-bg:#51576D \
+--color=border:#414559,label:#C6D0F5 \
+--color=gutter:-1"
 KUBECTL=$(which kubectl)
 FZF=$(which fzf)
 CURRENT_CONTEXT=$($KUBECTL config current-context)
@@ -35,20 +42,18 @@ select_namespace_interactive() {
     selected=$(echo "$namespaces" | $FZF \
         --ansi \
         --no-scrollbar \
-        --color=gutter:-1 \
         --header-lines=1 \
-        --layout=reverse \
+        --layout=reverse-list \
         --border=none \
         --height=20 \
         --no-multi \
-        --no-info \
+        --info=inline \
         --cycle \
-        --no-separator \
         --delimiter='\s+' \
         --nth=1 \
         --query="$initial_query" \
         --preview="echo -e 'Current context: \033[1;34m$CURRENT_CONTEXT\033[0m'" \
-        --preview-window=bottom:1)
+        --preview-window=top:1)
 
     # If a selection was made (not cancelled), switch to that namespace
     if [[ -n "$selected" ]]; then

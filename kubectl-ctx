@@ -5,6 +5,13 @@
 
 set -e
 
+FZF_DEFAULT_OPTS=" \
+--color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 \
+--color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF \
+--color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 \
+--color=selected-bg:#51576D \
+--color=border:#414559,label:#C6D0F5 \
+--color=gutter:-1"
 KUBECTL=$(which kubectl)
 FZF=$(which fzf)
 
@@ -23,8 +30,7 @@ main() {
     num_contexts=$(echo "$contexts" | wc -l)
 
     # Calculate height based on number of contexts. add 3 for input(1) and border(2)
-    # Ensure minimum height of 13
-    height=$((num_contexts + 3))
+    height=$((num_contexts + 1))
     if [[ $height -gt 20 ]]; then
         height=20
     fi
@@ -32,15 +38,13 @@ main() {
     # Use fzf to select a context from the menu
     selected=$(echo "$contexts" | $FZF \
         --ansi \
-        --color=gutter:-1 \
         --header-lines=1 \
-        --layout=reverse \
-        --border \
+        --layout=reverse-list \
+        --border=none \
         --height="$height" \
         --no-multi \
-        --no-info \
-        --cycle \
-        --no-separator)
+        --info=inline \
+        --cycle)
 
     if [[ -n "$selected" ]]; then
         # Remove the prefix indicator if present
