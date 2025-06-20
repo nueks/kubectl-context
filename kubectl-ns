@@ -33,8 +33,6 @@ switch_namespace() {
 
 # Function to show interactive namespace selector
 select_namespace_interactive() {
-    local initial_query="$1"
-
     # Get namespaces
     namespaces=$($KUBECTL get namespaces --context="$CURRENT_CONTEXT")
 
@@ -51,7 +49,7 @@ select_namespace_interactive() {
         --cycle \
         --delimiter='\s+' \
         --nth=1 \
-        --query="$initial_query" \
+        --query="$*" \
         --preview="echo -e 'Current context: \033[1;34m$CURRENT_CONTEXT\033[0m'" \
         --preview-window=top:1)
 
